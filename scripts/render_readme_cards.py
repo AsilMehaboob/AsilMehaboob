@@ -4,7 +4,7 @@ Render the profile README's cards as animated SVGs into cards/.
 
 Layout and animation follow Avi Vashishta's "animated SVG cards" profile README
 (avivashishta.com/blog/github-profile-readme-animated-svg-cards): paper, ink and
-one colour per tile (BUILD blue, RESEARCH red, SHIP yellow); Instrument Serif,
+monochrome tiles and one red accent; Instrument Serif,
 Geist and Geist Mono.
 
 Every card is a standalone SVG shown through <img>, so it can only use what GitHub
@@ -12,7 +12,7 @@ allows there: inline CSS animations, SMIL and fonts embedded as data URIs (no JS
 no external requests). Fonts are subset WOFFs in fonts/ (SIL OFL).
 
 Live numbers come from data/contributions.json (fetch_contributions.py) and the
-GitHub API (repo count, stars). The portrait comes from data/portrait.txt
+GitHub API (repo count). The portrait comes from data/portrait.txt
 (make_ascii.py). STATIC=1 renders every animation at its end state for previews.
 
 Run by .github/workflows/update-profile-art.yml after fetch_contributions.py.
@@ -40,9 +40,7 @@ INK = "#111111"
 INK_SOFT = "#3a3a3c"
 MUTED = "#6e6e73"
 RULE = "#dcdcd7"
-TECH = "#2f55ff"
-STUDIO = "#ef3b2d"
-LEARN = "#ffc81a"
+ACCENT = "#e03a2f"  # red, matching the trim on the avatar
 W = 880  # full card width, GitHub's README column at 100%
 
 SERIF = "'Instrument Serif', Georgia, serif"
@@ -175,7 +173,7 @@ def hero():
 <defs>
   <linearGradient id="shine" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0">
     <stop offset="0" stop-color="{INK}"/><stop offset=".42" stop-color="{INK}"/>
-    <stop offset=".5" stop-color="{TECH}"/><stop offset=".58" stop-color="{INK}"/>
+    <stop offset=".5" stop-color="{ACCENT}"/><stop offset=".58" stop-color="{INK}"/>
     <stop offset="1" stop-color="{INK}"/>
     <animateTransform attributeName="gradientTransform" type="translate" values="-600 0;600 0;600 0"
       keyTimes="0;.45;1" dur="7s" begin="1.6s" repeatCount="indefinite"/>
@@ -183,7 +181,7 @@ def hero():
 </defs>
 <rect width="{W}" height="{h}" rx="14" fill="{PAPER}"/>
 <g class="f" {d(0)}>
-  <rect class="live" x="48" y="49" width="8" height="8" rx="2" fill="{TECH}"/>
+  <rect class="live" x="48" y="49" width="8" height="8" rx="2" fill="{ACCENT}"/>
   <text x="66" y="57" font-family="{MONO}" font-size="12" letter-spacing="1" fill="{MUTED}">APPLIED AI, DATA &amp; PRODUCT</text>
 </g>
 <text class="r" {d(0.15)} x="44" y="190" font-family="{SERIF}" font-size="116" letter-spacing="-2.5" fill="{INK}">Asil</text>
@@ -193,7 +191,7 @@ def hero():
 </g>
 <g class="f" {d(0.8)}>
   <text x="48" y="396" font-family="{MONO}" font-size="13" fill="{INK}">asilmehaboob.vercel.app</text>
-  <text class="nu" x="236" y="396" font-family="{MONO}" font-size="13" fill="{TECH}">&#8599;</text>
+  <text class="nu" x="236" y="396" font-family="{MONO}" font-size="13" fill="{ACCENT}">&#8599;</text>
 </g>
 <g transform="translate(520 46) scale({s}) translate(-20 -37)" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
   {''.join(portrait)}
@@ -272,7 +270,7 @@ def activity(data):
         is_best = m is best
         bh = max(4, round(m["total"] / top * maxh))
         x = x0 + i * (bw + gap)
-        fill = TECH if is_best else ("#c9c9c4" if partial else INK)
+        fill = ACCENT if is_best else ("#c9c9c4" if partial else INK)
         label = datetime.date.fromisoformat(m["month"] + "-01").strftime("%b")
         bars.append(
             f'<rect class="g" style="animation-delay:{2.2 + i * 0.07:.2f}s" x="{x:.1f}" y="{base - bh}" '
@@ -283,7 +281,7 @@ def activity(data):
         if is_best:
             bars.append(
                 f'<text class="p" style="animation-delay:3.2s" x="{x + bw / 2:.1f}" y="{base - bh - 10}" '
-                f'text-anchor="middle" font-family="{MONO}" font-size="11" fill="{TECH}">{m["total"]:,}</text>'
+                f'text-anchor="middle" font-family="{MONO}" font-size="11" fill="{ACCENT}">{m["total"]:,}</text>'
             )
     cs = data["current_streak"]["length"]
     ls = data["longest_streak"]["length"]
@@ -315,47 +313,8 @@ def activity(data):
                               f'{data["total_contributions"]:,} contributions in the last year, {cs}-day streak'))
 
 
-# ---- 4 · repo cards -----------------------------------------------------------
-REPO_W, REPO_H = 880 / 3 - 8, 176
-REPOS = [
-    ("PRISM", "Poisoning-resilient, tiered memory for LLM agents, with signed long-term storage.", "Python", TECH),
-    ("E-Commerce-Data-Pipeline", "End-to-end Databricks, PySpark and Delta Lake pipeline on the Olist dataset.", "Jupyter", STUDIO),
-    ("Bunkr", "A student-only alternative to Ezygo, built to properly track attendance.", "Dart", LEARN),
-    ("Privy", "Encrypted ephemeral chats with PGP and zero server-side storage. Foss Hack '25.", "TypeScript", TECH),
-    ("NovaDash", "Retro vertical space shooter in p5.js, with 600+ players in the 2024-25 season.", "TypeScript", STUDIO),
-    ("Excel-Certificates-Console", "Admin console that bulk-generates certificates from dynamic SVG templates.", "TypeScript", LEARN),
-]
-
-
-def repo_card(i, name, desc, lang, color, stars):
-    pos = i % 3
-    delay = 4.6 + i * 0.12
-    meta = f"{lang}  ·  ★ {stars}" if stars else lang
-    fs = 18 if len(name) <= 20 else round(18 * 20 / len(name), 1)
-    body = f"""
-<rect width="{REPO_W}" height="{REPO_H}" rx="14" fill="{PAPER}"/>
-<g class="r" {d(delay)}>
-  <rect x="24" y="30" width="8" height="8" rx="2" fill="{color}"/>
-  <text x="40" y="39" font-family="{SANS}" font-weight="600" font-size="{fs}" fill="{INK}">{escape(name)}</text>
-  {text_lines(24, 72, wrap(desc, 34), 21, f'font-family="{SANS}" font-size="14" fill="{INK_SOFT}"')}
-  <text x="24" y="{REPO_H - 24}" font-family="{MONO}" font-size="12" fill="{MUTED}">{escape(meta)}</text>
-</g>
-"""
-    write(f"repo-{name.lower()}.svg", svg(REPO_W, REPO_H, body, ["sans", "sans-b", "mono"], f"{name}: {desc}",
-                                          left=4 * pos, right=8 - 4 * pos))
-
-
-def section_title(text, italic, theme):
-    fg = "#e6edf3" if theme == "dark" else INK
-    body = (
-        f'<text class="r" {d(4.4)} x="2" y="46" font-family="{SERIF}" font-size="34" fill="{fg}">{escape(text)} '
-        f'<tspan font-style="italic">{escape(italic)}</tspan></text>'
-    )
-    write(f"title-coding-{theme}.svg", svg(W, 64, body, ["serif", "serif-i"], f"{text} {italic}", bottom=0))
-
-
-# ---- 5 · blue contribution graph -----------------------------------------------
-BLUE = [PAPER_DEEP, "#c8d3ff", "#94a8ff", "#6280ff", TECH, "#1a3be0"]
+# ---- 5 · red contribution graph -----------------------------------------------
+RAMP = [PAPER_DEEP, "#f8cdc8", "#f19b91", "#e8675c", ACCENT, "#b0231a"]
 
 
 def level_for(c):
@@ -379,7 +338,7 @@ def heatmap(data):
         delay = 1.0 + col * 0.03 + row * 0.02
         cells.append(
             f'<rect class="p" style="animation-delay:{delay:.2f}s" x="{gx + col * step}" y="{gy + row * step}" '
-            f'width="{cell}" height="{cell}" rx="3" fill="{BLUE[level_for(c)]}">'
+            f'width="{cell}" height="{cell}" rx="3" fill="{RAMP[level_for(c)]}">'
             f'<title>{day["date"]}: {c} contribution{"s" if c != 1 else ""}</title></rect>'
         )
     ncols = (len(days) + lead + 6) // 7
@@ -388,21 +347,20 @@ def heatmap(data):
         f'<text x="{gx + col * step}" y="{gy + 7 * step + 16}" font-family="{MONO}" font-size="11" fill="{MUTED}">{m}</text>'
         for col, m in months if col < ncols - 12
     )
-    legend_x = right - len(BLUE) * 14
+    legend_x = right - len(RAMP) * 14
     legend = "".join(
         f'<rect x="{legend_x + i * 14}" y="{gy + 7 * step + 6}" width="11" height="11" rx="2.5" fill="{c}"/>'
-        for i, c in enumerate(BLUE)
+        for i, c in enumerate(RAMP)
     )
     h = gy + 7 * step + 44
     body = f"""
 <rect width="{W}" height="{h}" rx="14" fill="{PAPER}"/>
-<text class="r" {d(0.8)} x="42" y="62" font-family="{SERIF}" font-size="34" fill="{INK}">Every day, <tspan font-style="italic" fill="{TECH}">in blue</tspan></text>
-<text class="f" {d(0.8)} x="{right}" y="60" text-anchor="end" font-family="{MONO}" font-size="12" letter-spacing="1" fill="{MUTED}">REFRESHED DAILY</text>
+<text class="r" {d(0.8)} x="42" y="62" font-family="{SERIF}" font-size="34" fill="{INK}">Every day, <tspan font-style="italic" fill="{ACCENT}">in red</tspan></text>
 {''.join(cells)}
 <g class="f" {d(2.4)}>{labels}
 <text x="{legend_x - 8}" y="{gy + 7 * step + 16}" text-anchor="end" font-family="{MONO}" font-size="11" fill="{MUTED}">less</text>
 {legend}
-<text x="{legend_x + len(BLUE) * 14 + 2}" y="{gy + 7 * step + 16}" font-family="{MONO}" font-size="11" fill="{MUTED}">more</text></g>
+<text x="{legend_x + len(RAMP) * 14 + 2}" y="{gy + 7 * step + 16}" font-family="{MONO}" font-size="11" fill="{MUTED}">more</text></g>
 """
     write("heatmap.svg", svg(W, h, body, ["serif", "serif-i", "mono"],
                              f'Contribution graph: {data["total_contributions"]:,} contributions in the last year'))
@@ -418,29 +376,25 @@ def api(path):
 
 
 def repo_stats():
-    """Own (non-fork) public repo count and stars per featured repo; falls back offline."""
+    """Own (non-fork) public repo count; falls back offline."""
     try:
         repos = api(f"users/{USER}/repos?per_page=100&type=owner")
         own = [r for r in repos if not r["fork"]]
-        return str(len(own)), {r["name"]: r["stargazers_count"] for r in repos}
+        return str(len(own))
     except Exception as e:  # offline: keep going with the last known count
         print(f"repo stats unavailable: {e}")
-        return "40", {}
+        return "40"
 
 
 if __name__ == "__main__":
     data = json.load(open(DATA, encoding="utf-8"))
-    repo_count, stars = repo_stats()
+    repo_count = repo_stats()
     hero()
-    tile("build", "BUILD", TECH, "#ffffff", repo_count, "repos",
+    tile("build", "BUILD", INK, PAPER, repo_count, "repos",
          "Data pipelines, real-time apps and tools, from Bunkr to Privy.", 3.1, 0)
-    tile("research", "RESEARCH", STUDIO, "#ffffff", "3", "tiers",
+    tile("research", "RESEARCH", INK, PAPER, "3", "tiers",
          "PRISM: isolated, signed memory that keeps LLM agents safe from poisoning.", 3.35, 1)
-    tile("ship", "SHIP", LEARN, INK, "600+", "players",
+    tile("ship", "SHIP", INK, PAPER, "600+", "players",
          "NovaDash, a retro space shooter, during the 2024-25 Excel season.", 3.6, 2)
     activity(data)
-    for i, (name, desc, lang, color) in enumerate(REPOS):
-        repo_card(i, name, desc, lang, color, stars.get(name, 0))
-    section_title("What I'm", "coding", "dark")
-    section_title("What I'm", "coding", "light")
     heatmap(data)
