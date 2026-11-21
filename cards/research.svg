@@ -23,21 +23,25 @@
 .sl{opacity:0;transform-box:fill-box;animation:slidein .6s cubic-bezier(.2,.7,.2,1) both}
 .ai{opacity:0;transform-box:fill-box;animation:arrowin .7s cubic-bezier(.2,.7,.2,1) both}
 .ro{transform-box:fill-box;animation:roll .8s cubic-bezier(.15,.8,.2,1) both}
-.sh{animation:sheen 5s ease-in-out infinite}
+.sh{animation:sheen 4s ease-in-out infinite}
 .rg{opacity:0;transform-box:fill-box;transform-origin:center;animation:ring 1s ease-out both}
-@media (prefers-reduced-motion: reduce){.r,.f,.g,.p,.live,.n,.nu,.ti,.sl,.ai,.ro,.rg{animation:none!important;opacity:1!important;transform:none!important}.sh,.rg{display:none}}
+@keyframes ringloop{0%{opacity:.6;transform:scale(.2)}40%,100%{opacity:0;transform:scale(2.4)}}
+.rgl{opacity:0;transform-box:fill-box;transform-origin:center;animation:ringloop 3.2s ease-out infinite}
+@media (prefers-reduced-motion: reduce){.r,.f,.g,.p,.live,.n,.nu,.ti,.sl,.ai,.ro,.rg{animation:none!important;opacity:1!important;transform:none!important}.sh,.rg,.rgl{display:none}}
 </style><g transform="translate(4.000 0)">
 <defs>
   <clipPath id="card"><rect width="285.3333333333333" height="210" rx="14"/></clipPath>
   <clipPath id="slot"><rect x="0" y="62" width="285.3333333333333" height="62"/></clipPath>
   <linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/>
-    <stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <stop offset=".5" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a2a2a"/><stop offset=".55" stop-color="#111111"/></linearGradient>
 </defs>
 <g class="ti" style="animation-delay:3.35s">
   <g clip-path="url(#card)">
-    <rect width="285.3333333333333" height="210" fill="#111111"/>
-    <circle class="rg" style="animation-delay:3.85s" cx="245.33333333333331" cy="170" r="60" fill="none" stroke="#f3f3f1" stroke-opacity=".5" stroke-width="2"/>
-    <rect class="sh" style="animation-delay:4.75s" x="0" y="-20" width="90" height="250" fill="url(#gl)" transform="translate(-260 0)"/>
+    <rect width="285.3333333333333" height="210" fill="url(#bg)"/>
+    <circle class="rg" style="animation-delay:3.85s" cx="245.33333333333331" cy="170" r="60" fill="none" stroke="#f3f3f1" stroke-opacity=".6" stroke-width="2"/>
+    <circle class="rgl" style="animation-delay:5.55s" cx="245.33333333333331" cy="170" r="60" fill="none" stroke="#f3f3f1" stroke-opacity=".35" stroke-width="1.5"/>
+    <rect class="sh" style="animation-delay:4.75s" x="0" y="-20" width="140" height="250" fill="url(#gl)" transform="translate(-260 0)"/>
   </g>
   <text class="sl" style="animation-delay:3.70s" x="24" y="38" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="1.2" fill="#f3f3f1">RESEARCH</text>
   <g class="ai" style="animation-delay:3.85s"><text class="n" style="animation-delay:4.65s" x="250" y="38" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" fill="#f3f3f1">&#8594;</text></g>

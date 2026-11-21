@@ -80,9 +80,11 @@ BASE_CSS = """
 .sl{opacity:0;transform-box:fill-box;animation:slidein .6s cubic-bezier(.2,.7,.2,1) both}
 .ai{opacity:0;transform-box:fill-box;animation:arrowin .7s cubic-bezier(.2,.7,.2,1) both}
 .ro{transform-box:fill-box;animation:roll .8s cubic-bezier(.15,.8,.2,1) both}
-.sh{animation:sheen 5s ease-in-out infinite}
+.sh{animation:sheen 4s ease-in-out infinite}
 .rg{opacity:0;transform-box:fill-box;transform-origin:center;animation:ring 1s ease-out both}
-@media (prefers-reduced-motion: reduce){.r,.f,.g,.p,.live,.n,.nu,.ti,.sl,.ai,.ro,.rg{animation:none!important;opacity:1!important;transform:none!important}.sh,.rg{display:none}}
+@keyframes ringloop{0%{opacity:.6;transform:scale(.2)}40%,100%{opacity:0;transform:scale(2.4)}}
+.rgl{opacity:0;transform-box:fill-box;transform-origin:center;animation:ringloop 3.2s ease-out infinite}
+@media (prefers-reduced-motion: reduce){.r,.f,.g,.p,.live,.n,.nu,.ti,.sl,.ai,.ro,.rg{animation:none!important;opacity:1!important;transform:none!important}.sh,.rg,.rgl{display:none}}
 """
 
 
@@ -110,7 +112,7 @@ def svg(w, h, body, fonts, label, extra_css="", left=0, right=0, bottom=BOTTOM):
     w, h = w + left + right, h + bottom
     css = font_face(fonts) + BASE_CSS + extra_css
     if os.environ.get("STATIC"):  # preview: show every animation at its end state
-        css += ".r,.f,.g,.p,.live,.n,.nu,.ti,.sl,.ai,.ro{animation:none!important;opacity:1!important;transform:none!important}.sh,.rg{display:none}"
+        css += ".r,.f,.g,.p,.live,.n,.nu,.ti,.sl,.ai,.ro{animation:none!important;opacity:1!important;transform:none!important}.sh,.rg,.rgl{display:none}"
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{w:.3f}" height="{h}" viewBox="0 0 {w:.3f} {h}" '
         f'role="img" aria-label="{escape(label)}"><title>{escape(label)}</title>'
@@ -236,13 +238,15 @@ def tile(name, label, color, on, num, word, blurb, delay, pos):
   <clipPath id="card"><rect width="{TILE_W}" height="{TILE_H}" rx="14"/></clipPath>
   <clipPath id="slot"><rect x="0" y="62" width="{TILE_W}" height="62"/></clipPath>
   <linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/>
-    <stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <stop offset=".5" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a2a2a"/><stop offset=".55" stop-color="{color}"/></linearGradient>
 </defs>
 <g class="ti" {d(delay)}>
   <g clip-path="url(#card)">
-    <rect width="{TILE_W}" height="{TILE_H}" fill="{color}"/>
-    <circle class="rg" {d(delay + 0.5)} cx="{TILE_W - 40}" cy="{TILE_H - 40}" r="60" fill="none" stroke="{on}" stroke-opacity=".5" stroke-width="2"/>
-    <rect class="sh" style="animation-delay:{delay + 1.4:.2f}s" x="0" y="-20" width="90" height="{TILE_H + 40}" fill="url(#gl)" transform="translate(-260 0)"/>
+    <rect width="{TILE_W}" height="{TILE_H}" fill="url(#bg)"/>
+    <circle class="rg" {d(delay + 0.5)} cx="{TILE_W - 40}" cy="{TILE_H - 40}" r="60" fill="none" stroke="{on}" stroke-opacity=".6" stroke-width="2"/>
+    <circle class="rgl" {d(delay + 2.2)} cx="{TILE_W - 40}" cy="{TILE_H - 40}" r="60" fill="none" stroke="{on}" stroke-opacity=".35" stroke-width="1.5"/>
+    <rect class="sh" style="animation-delay:{delay + 1.4:.2f}s" x="0" y="-20" width="140" height="{TILE_H + 40}" fill="url(#gl)" transform="translate(-260 0)"/>
   </g>
   <text class="sl" {d(delay + 0.35)} x="24" y="38" font-family="{MONO}" font-size="12" letter-spacing="1.2" fill="{on}">{label}</text>
   <g class="ai" {d(delay + 0.5)}><text class="n" style="animation-delay:{delay + 1.3:.2f}s" x="250" y="38" font-family="{MONO}" font-size="14" fill="{on}">&#8594;</text></g>
