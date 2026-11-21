@@ -4,15 +4,14 @@ Render the profile README's cards as animated SVGs into cards/.
 
 Layout and animation follow Avi Vashishta's "animated SVG cards" profile README
 (avivashishta.com/blog/github-profile-readme-animated-svg-cards): paper, ink and
-monochrome tiles and one red accent; Instrument Serif,
+one red accent; Instrument Serif,
 Geist and Geist Mono.
 
 Every card is a standalone SVG shown through <img>, so it can only use what GitHub
 allows there: inline CSS animations, SMIL and fonts embedded as data URIs (no JS,
 no external requests). Fonts are subset WOFFs in fonts/ (SIL OFL).
 
-Live numbers come from data/contributions.json (fetch_contributions.py) and the
-GitHub API (repo count). The portrait comes from data/portrait.txt
+Live numbers come from data/contributions.json (fetch_contributions.py). The portrait comes from data/portrait.txt
 (make_ascii.py). STATIC=1 renders every animation at its end state for previews.
 
 Run by .github/workflows/update-profile-art.yml after fetch_contributions.py.
@@ -22,7 +21,6 @@ import datetime
 import json
 import os
 import re
-import urllib.request
 from html import escape
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -31,7 +29,6 @@ DATA = os.path.join(ROOT, "data", "contributions.json")
 OUT = os.path.join(ROOT, "cards")
 FONTS = os.path.join(ROOT, "fonts")
 PORTRAIT = os.path.join(ROOT, "data", "portrait.txt")
-USER = os.environ.get("GH_PROFILE_USER", "AsilMehaboob")
 
 # ---- brand tokens -----------------------------------------------------------
 PAPER = "#f3f3f1"
@@ -203,63 +200,6 @@ def hero():
                           "Asil Mehaboob. Applied AI, data and product. " + " ".join(TAGLINE)))
 
 
-# ---- 2 · world tiles ----------------------------------------------------------
-TILE_W, TILE_H = 880 / 3 - 8, 210  # 285.33: two 12px gaps across the row
-
-
-def count_up(num, word, x, y, attrs, begin, dur=1.1, frames=18):
-    """Number counts up from 0 with SMIL <set> frames (works inside <img>), easing out."""
-    m = re.match(r"([\d.]+)(.*)", num)
-    val, suf = float(m.group(1)), m.group(2)
-    dec = len(m.group(1).split(".")[1]) if "." in m.group(1) else 0
-    tail = f' <tspan font-style="italic">{escape(word)}</tspan>'
-    if os.environ.get("STATIC"):
-        return f'<text x="{x}" y="{y}" {attrs}>{escape(num)}{tail}</text>'
-    out = []
-    for i in range(frames + 1):
-        e = 1 - (1 - i / frames) ** 3
-        txt = num if i == frames else f"{val * e:.{dec}f}{suf}"
-        on = begin + dur * i / frames
-        off = "" if i == frames else f'<set attributeName="opacity" to="0" begin="{begin + dur * (i + 1) / frames:.3f}s"/>'
-        out.append(f'<text x="{x}" y="{y}" {attrs} opacity="0">{escape(txt)}{tail}'
-                   f'<set attributeName="opacity" to="1" begin="{on:.3f}s"/>{off}</text>')
-    return "".join(out)
-
-
-def tile(name, label, color, on, num, word, blurb, delay, pos):
-    lines = wrap(blurb, 34)
-    blurb_svg = "".join(
-        f'<text class="r" {d(delay + 0.75 + i * 0.1)} x="24" y="{150 + i * 20}" font-family="{SANS}" '
-        f'font-size="14" fill="{on}" opacity=".92">{escape(l)}</text>'
-        for i, l in enumerate(lines)
-    )
-    body = f"""
-<defs>
-  <clipPath id="card"><rect width="{TILE_W}" height="{TILE_H}" rx="14"/></clipPath>
-  <clipPath id="slot"><rect x="0" y="62" width="{TILE_W}" height="62"/></clipPath>
-  <linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/>
-    <stop offset=".5" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a2a2a"/><stop offset=".55" stop-color="{color}"/></linearGradient>
-</defs>
-<g class="ti" {d(delay)}>
-  <g clip-path="url(#card)">
-    <rect width="{TILE_W}" height="{TILE_H}" fill="url(#bg)"/>
-    <circle class="rg" {d(delay + 0.5)} cx="{TILE_W - 40}" cy="{TILE_H - 40}" r="60" fill="none" stroke="{on}" stroke-opacity=".6" stroke-width="2"/>
-    <circle class="rgl" {d(delay + 2.2)} cx="{TILE_W - 40}" cy="{TILE_H - 40}" r="60" fill="none" stroke="{on}" stroke-opacity=".35" stroke-width="1.5"/>
-    <rect class="sh" style="animation-delay:{delay + 1.4:.2f}s" x="0" y="-20" width="140" height="{TILE_H + 40}" fill="url(#gl)" transform="translate(-260 0)"/>
-  </g>
-  <text class="sl" {d(delay + 0.35)} x="24" y="38" font-family="{MONO}" font-size="12" letter-spacing="1.2" fill="{on}">{label}</text>
-  <g class="ai" {d(delay + 0.5)}><text class="n" style="animation-delay:{delay + 1.3:.2f}s" x="250" y="38" font-family="{MONO}" font-size="14" fill="{on}">&#8594;</text></g>
-  <g clip-path="url(#slot)"><g class="ro" {d(delay + 0.45)}>
-    {count_up(num, word, 22, 112, f'font-family="{SERIF}" font-size="44" fill="{on}"', delay + 0.45)}
-  </g></g>
-  {blurb_svg}
-</g>
-"""
-    write(f"{name}.svg", svg(TILE_W, TILE_H, body, ["serif", "serif-i", "sans", "mono"],
-                             f"{label}: {num} {word}. {blurb}", left=4 * pos, right=8 - 4 * pos))
-
-
 # ---- 3 · activity (monthly bars) ------------------------------------------------
 def activity(data):
     h = 340
@@ -370,35 +310,8 @@ def heatmap(data):
                              f'Contribution graph: {data["total_contributions"]:,} contributions in the last year'))
 
 
-def api(path):
-    headers = {"User-Agent": "profile-readme-bot/1.0", "Accept": "application/vnd.github+json"}
-    if os.environ.get("GITHUB_TOKEN"):
-        headers["Authorization"] = f"Bearer {os.environ['GITHUB_TOKEN']}"
-    req = urllib.request.Request(f"https://api.github.com/{path}", headers=headers)
-    with urllib.request.urlopen(req, timeout=15) as r:
-        return json.load(r)
-
-
-def repo_stats():
-    """Own (non-fork) public repo count; falls back offline."""
-    try:
-        repos = api(f"users/{USER}/repos?per_page=100&type=owner")
-        own = [r for r in repos if not r["fork"]]
-        return str(len(own))
-    except Exception as e:  # offline: keep going with the last known count
-        print(f"repo stats unavailable: {e}")
-        return "40"
-
-
 if __name__ == "__main__":
     data = json.load(open(DATA, encoding="utf-8"))
-    repo_count = repo_stats()
     hero()
-    tile("build", "BUILD", INK, PAPER, repo_count, "repos",
-         "Data pipelines, real-time apps and tools, from Bunkr to Privy.", 3.1, 0)
-    tile("research", "RESEARCH", INK, PAPER, "3", "tiers",
-         "PRISM: isolated, signed memory that keeps LLM agents safe from poisoning.", 3.35, 1)
-    tile("ship", "SHIP", INK, PAPER, "600+", "players",
-         "NovaDash, a retro space shooter, during the 2024-25 Excel season.", 3.6, 2)
     activity(data)
     heatmap(data)
